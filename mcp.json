@@ -1,0 +1,17 @@
+{
+  "name": "Janio Melo",
+  "description": "Arquiteto de Soluções Digitais e Automação para o Terceiro Setor.",
+  "contact_policy": {
+    "urgente": "telefonema",
+    "registro": "email"
+  },
+  "contact": {
+    "phone": "+5511963991160",
+    "email": "contato@janiomelo.dev"
+  },
+  "links": {
+    "bluesky": "https://bsky.app/profile/janiomelo.dev",
+    "linkedin": "https://www.linkedin.com/in/janio-melo-a5765199/",
+    "github": "https://github.com/janiomelo"
+  }
+}
