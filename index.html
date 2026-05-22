@@ -16,9 +16,12 @@
             font-family: system-ui, -apple-system, sans-serif;
             margin: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
             background: linear-gradient(160deg, var(--purple-soft) 0%, #eee8f8 50%, #f4f4f4 100%);
         }
 
@@ -30,6 +33,82 @@
             text-align: center;
             width: 90%;
             max-width: 380px;
+        }
+
+        .changelog-toggle {
+            display: inline-block;
+            margin-top: 1.75rem;
+            border: none;
+            background: none;
+            color: var(--purple);
+            font-size: 0.8rem;
+            opacity: 0.5;
+            cursor: pointer;
+            padding: 0;
+            transition: opacity 0.2s;
+        }
+
+        .changelog-toggle:hover,
+        .changelog-toggle[aria-expanded="true"] {
+            opacity: 1;
+        }
+
+        .changelog-panel {
+            display: none;
+            width: 90%;
+            max-width: 380px;
+            margin-top: 1rem;
+            padding: 1.25rem 1.5rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(138, 43, 226, 0.08);
+            text-align: left;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .changelog-panel.is-open {
+            display: block;
+        }
+
+        .changelog-panel h2 {
+            color: var(--purple);
+            font-size: 0.95rem;
+            margin: 1.25rem 0 0.5rem;
+        }
+
+        .changelog-panel h2:first-child {
+            margin-top: 0;
+        }
+
+        .changelog-panel h3 {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin: 0.75rem 0 0.35rem;
+        }
+
+        .changelog-panel ul {
+            margin: 0 0 0.5rem;
+            padding-left: 1.1rem;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+
+        .changelog-panel li {
+            margin-bottom: 0.25rem;
+        }
+
+        .changelog-status {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .changelog-status.is-error {
+            color: #9b2c2c;
         }
 
         .profile-image {
@@ -154,7 +233,103 @@
                 </svg>
             </a>
         </nav>
+        <button type="button" class="changelog-toggle" id="changelog-toggle" aria-expanded="false" aria-controls="changelog-panel">
+            Atualizações
+        </button>
     </main>
+    <section class="changelog-panel" id="changelog-panel" aria-labelledby="changelog-toggle" hidden>
+        <p class="changelog-status" id="changelog-status">Carregando…</p>
+        <div id="changelog-content" hidden></div>
+    </section>
+    <script>
+        (function () {
+            var CHANGELOG_URL = 'https://raw.githubusercontent.com/janiomelo/janiomelo.dev/master/CHANGELOG.md';
+            var toggle = document.getElementById('changelog-toggle');
+            var panel = document.getElementById('changelog-panel');
+            var status = document.getElementById('changelog-status');
+            var content = document.getElementById('changelog-content');
+            var loaded = false;
+
+            function renderMarkdown(md) {
+                var lines = md.split('\n');
+                var html = '';
+                var inList = false;
+
+                function closeList() {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                }
+
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i];
+                    if (line.indexOf('# Changelog') === 0 || line.indexOf('Alterações relevantes') === 0) {
+                        continue;
+                    }
+                    if (line.indexOf('## ') === 0) {
+                        closeList();
+                        html += '<h2>' + escapeHtml(line.slice(3)) + '</h2>';
+                        continue;
+                    }
+                    if (line.indexOf('### ') === 0) {
+                        closeList();
+                        html += '<h3>' + escapeHtml(line.slice(4)) + '</h3>';
+                        continue;
+                    }
+                    if (line.indexOf('- ') === 0) {
+                        if (!inList) {
+                            html += '<ul>';
+                            inList = true;
+                        }
+                        html += '<li>' + escapeHtml(line.slice(2)) + '</li>';
+                        continue;
+                    }
+                    if (line.trim() === '') {
+                        closeList();
+                    }
+                }
+                closeList();
+                return html;
+            }
+
+            function escapeHtml(text) {
+                return text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
+
+            function loadChangelog() {
+                if (loaded) return;
+                loaded = true;
+                fetch(CHANGELOG_URL)
+                    .then(function (res) {
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        return res.text();
+                    })
+                    .then(function (md) {
+                        content.innerHTML = renderMarkdown(md);
+                        status.hidden = true;
+                        content.hidden = false;
+                    })
+                    .catch(function () {
+                        status.textContent = 'Não foi possível carregar o histórico.';
+                        status.classList.add('is-error');
+                    });
+            }
+
+            toggle.addEventListener('click', function () {
+                var open = toggle.getAttribute('aria-expanded') === 'true';
+                open = !open;
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                panel.classList.toggle('is-open', open);
+                panel.hidden = !open;
+                if (open) loadChangelog();
+            });
+        })();
+    </script>
 </body>
 
 </html>

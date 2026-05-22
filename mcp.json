@@ -13,5 +13,19 @@
     "bluesky": "https://bsky.app/profile/janiomelo.dev",
     "linkedin": "https://www.linkedin.com/in/janio-melo-a5765199/",
     "github": "https://github.com/janiomelo"
+  },
+  "changelog": {
+    "source": "https://raw.githubusercontent.com/janiomelo/janiomelo.dev/master/CHANGELOG.md",
+    "format": "keep-a-changelog",
+    "agent_prompt": "/agents/changelog.prompt.md"
+  },
+  "agents": {
+    "changelog": {
+      "name": "Agente de Changelog",
+      "description": "Traduz impacto técnico de commits em valor para o usuário final.",
+      "categories": ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"],
+      "inputs": ["git_commits", "obsidian_notes", "n8n_tasks"],
+      "output": "CHANGELOG.md"
+    }
   }
 }
